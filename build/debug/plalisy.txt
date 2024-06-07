@@ -1,0 +1,5 @@
+-[playlist file]-
+abcc
+gdggddg
+fds
+-[end of file/n]-
