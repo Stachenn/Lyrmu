@@ -1,12 +1,15 @@
 #pragma once
 
 #include <iostream>
-#include <vector>
+#include <cstring>
+
 #include "parser.hpp"
 
 /// @brief Create jsonParser object
 /// @param content json content to parse can be change later
 /// @return nothing 
+
+//jsonParser::addToTable()
 jsonParser::jsonParser(const char* content){
     this->content = content;
 }   
@@ -14,92 +17,137 @@ jsonParser::jsonParser(const char* content){
 /// @brief Delete jsonParser object
 jsonParser::~jsonParser(){
     delete this->content;
-    
-    delete this->varNames;
-    delete this->varTypes;
-    delete this->varValues;
-    delete this->cache;
-
-    varTypes = nullptr;
-    varNames = nullptr;
-    varValues = nullptr;
-    cache = nullptr;
-
     delete this;
 }
- 
-const char** jsonParser::parse(const char* userContent){
-    const char* content = userContent;
-    int index = 0;
 
-    int objectIn = 0;
-    int objectOut = 0;
+void jsonParser::parse(const char* userContent){
+    const char* content = this->content;
+    const char* cacheString;
 
-    if (std::strlen(this->content) <= 1){
-        content = this->content;
-    }
+    long long unsigned index = 0;
+
+    int copyIndex = 0;
+    int objectInfo = 0;
+    int skips = 0;
+    int currentVarAmount = 0;
 
     while (true){
+        std::cout << index;
         if (content[index] == '"'){
+            index++;
+            while (true){
+                if (char(content[index]) == '"'){
+                    varNames.pushBack(cacheString);
+                    std::cout << *varNames[0];
+                    cacheString = "";
+                    break;
+                }
+                //std::cout << content[index];
+                //td::cout << "aa";
+                index++;
+                cacheString += content[index];
+            }
+        }
+
+        // Saving value of varible
+        if (content[index] == ':'){
+            if (content[index+1] == '"'){
+                skips = 2;
+            }
             while (true){
                 if (content[index] == '"'){
-                    varAmount++;
-                    for (int i = 0; i < varAmount; i++){
-                        cache[i] = varNames[i];
-                    }
+                    if (skips < 1){
+                        int charToDelete;
 
-                    delete this->varNames;
-                    delete this->cache;
-                    
-                    varNames = new const char**[varAmount];
-                    cache = new const char**[varAmount];
+                        copyIndex = index;
+                        while (true){
+                            if (content[copyIndex] == '"'){
+                                char cp[strlen(cacheString) + 1];
+                                strcpy(cp, cacheString);
+                                
+                                for (int i = strlen(cacheString); i < charToDelete+strlen(cacheString);i--){
+                                    cp[i] = ' ';
+                                }
+                                cacheString = cp;
+                                varValues.pushBack(cacheString);
+                                varAmount++;
 
-                    for (int i = 0; i < varAmount; i++){
-                        varNames[i] = cache[i];
+                                index--;
+                                break;
+                            }
+                            charToDelete++;
+                            copyIndex--;
+                        }
+                        break;
                     }
-                    varNames[varAmount-1] = cacheName;
-                    cacheName = "";
+                    else{
+                        skips--;
+                    }
                 }
-                cacheName += content;
+                cacheString += content[index];
                 index++;
             }
-            //jsonParser recursionObject = jsonParser("");
-            //recursionObject.~jsonParser();
-            //jsonParser::parse();
-            // Nie wiem czy zrobic rekurencje czy nie
-            // ...trudne sie trafilo
-            // jednak rekurencja :)
         }
-        if ()
-
-
-
-        if (this->content[index] == '{'){
-            objectIn++;
+        if (content[index] == '}'){
+            objectInfo--;
         }
-
-        if (this->content[index] == '}'){
-            objectOut++;
-            //tableOut--;
+        if (content[index] == '{'){
+            objectInfo++;
         }
-        if (std::strlen(this->content) == index){
-            if (objectIn > objectOut){
-                //return "-2";
+        // Checking if any varible was added
+        std::cout << currentVarAmount << '\n';
+        std::cout << varAmount << '\n';
+        if (varAmount > currentVarAmount){
+            std::cout << varValues[varAmount-1];
+
+            if (varValues[varAmount-1] == "false" || varValues[varAmount-1] == "true"){
+                varTypes.pushBack("bool");
             }
-            //return "-1";
+            if (varValues[varAmount-1] == "null"){
+                varTypes.pushBack("null");
+            }
+            if (varValues[varAmount-1][0] == '"' && varValues[varAmount-1][strlen(varValues[varAmount])] == '"'){
+                varTypes.pushBack("string");                
+            }
+            for (int i = 0; i < strlen(varValues[varAmount]); i++){
+                if (varValues[varAmount-1][i] > 47 && varValues[varAmount-1][i] < 58){
+                    continue;
+                }
+                else{
+                    varTypes.pushBack("error");
+                    break;
+                }
+                if (i+1 == std::strlen(varValues[varAmount-1])){
+                    varTypes.pushBack("int");
+                }
+            }
+            if (varValues[varAmount-1][0] == '{' && varValues[varAmount-1][strlen(varValues[varAmount-1])] == '}'){
+                varTypes.pushBack("object");                
+                
+                jsonParser object(varValues[varAmount-1]);
+                object.parse(varValues[varAmount-1]);
+                
+                const char** objNames = object.getNames();
+                const char** objTypes = object.getTypes();
+                const char** objValues = object.getValues();
+
+                for (int i = 0; i < object.varAmount; i++){
+                    varTypes.pushBack(objTypes[i]);
+                    varNames.pushBack(objNames[i]);
+                    varValues.pushBack(objValues[i]);
+                }
+            }
+            if (varValues[varAmount-1][0] == '[' && varValues[varAmount-1][strlen(varValues[varAmount-1])] == ']'){
+                varTypes.pushBack("table");                
+            }
+            currentVarAmount++;
+        }
+        if (objectInfo < 1){
+            break;
         }
         index++;
     }
-    return {"fds", "fdsd"};
-    
-    //int amountOfFindedVaribles = 0;
-
-    //for (int i = 0; i < this->content; i++){
-    //    if 
-    //}
-    //static const char* g[] = {"helo", "jes"};
-    //static const char** f[4] = {"ft", "ht", g, "d"};
-    delete content;
+    std::cout << varNames[0];
 }
 
 ///@return list of founded items 
