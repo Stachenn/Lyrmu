@@ -19,7 +19,7 @@ template <typename T> class array{
     public:
         ~array();
         
-        //void pushBack(T value);
+        void pushBack(T value);
         void erase();
         void changeValue(int index);
         
