@@ -7,22 +7,21 @@
 
 /// @brief Create jsonParser object
 /// @param content json content to parse can be change later
-/// @return nothing 
+/// @return nothing
 
 //jsonParser::addToTable()
 jsonParser::jsonParser(std::string content){
     this->content = content;
-}   
+}
 
 /// @brief Delete jsonParser object
 jsonParser::~jsonParser(){
 }
 
 int jsonParser::find(std::string varibleName){
-    for (int i = 0; i < this->varNames.size()-1; i++){
-        //std::cout << this->varNames[i];
+    for (int i = 0; i < this->varNames.size(); i++){
         if (this->varNames[i] == varibleName){
-            return 0;
+            return i;
         }
     }
     return -1;
@@ -85,8 +84,8 @@ void jsonParser::parse(){
     int skips = 0;
     int type = getType();
     int currentVarAmount = 0;
-    
-    if (type == 1){ 
+
+    if (type == 1){
         objectSkips++;
     }
 
@@ -96,7 +95,7 @@ void jsonParser::parse(){
         if (content[index] == '"' && type != 1){
             while (true){
                 index++;
-                
+
                 if (content[index] == '"'){
                     varNames.push_back(cache);
                     cache = "";
@@ -114,14 +113,14 @@ void jsonParser::parse(){
             if (type == 1){
                 varNames.push_back(std::to_string(varAmount));
             }
-            
+
             while (true){
                 if (content[index] != ' '){
-                    break;                  
+                    break;
                 }
                 index++;
             }
-            
+
             while (true){
                 if (content[index] == '"'){
                     isInString = !isInString;
@@ -140,7 +139,7 @@ void jsonParser::parse(){
                 if ((content[index] == ',' || content[index] == '}' || content[index] == ']') && (!isInObject && !isInString)){
                     copyIndex = cache.length();
                     while (true){
-                        
+
                         if (cache[copyIndex] != ' '){
                             break;
                         }
@@ -158,25 +157,25 @@ void jsonParser::parse(){
                     break;
                 }
                 cache += content[index];
-                index++;     
+                index++;
             }
         }
-        
+
         if (varAmount > currentVarAmount){
             while (true){
                 if (varValues[varAmount-1] == "false" || varValues[varAmount-1] == "true"){
                     varTypes.push_back("bool");
                     break;
                 }
-                
+
                 if (varValues[varAmount-1] == "null"){
                     varTypes.push_back("null");
                     break;
                 }
-                
+
                 if (varValues[varAmount-1][0] == '"' && varValues[varAmount-1][varValues[varAmount-1].length()-1] == '"'){
-                    varTypes.push_back("string"); 
-                    break;               
+                    varTypes.push_back("string");
+                    break;
                 }
                 if (varValues[varAmount-1][0] > 47 && varValues[varAmount-1][0] < 58){
                     for (int i = 0; i < varValues[varAmount-1].length()-1; i++){
@@ -188,18 +187,18 @@ void jsonParser::parse(){
                         if (i+1 > varValues[varAmount-1].length()-1){
                             varTypes.push_back("int");
                             break;
-                        }     
+                        }
                     }
                     break;
                 }
                 if (varValues[varAmount-1][0] == '{' && varValues[varAmount-1][varValues[varAmount-1].length()-1] == '}' ||
                     varValues[varAmount-1][0] == '[' && varValues[varAmount-1][varValues[varAmount-1].length()-1] == ']'   ){
-                    
+
                     if (varValues[varAmount-1][0] == '[' && varValues[varAmount-1][varValues[varAmount-1].length()-1] == ']'){
                         varTypes.push_back("table");
                     }
                     else{
-                        varTypes.push_back("object");                
+                        varTypes.push_back("object");
                     }
 
                     jsonParser object(varValues[varAmount-1].c_str());
@@ -213,7 +212,7 @@ void jsonParser::parse(){
                     std::vector<std::string> objValues = object.getValues();
 
                     for (int i = 0; i < object.varAmount-1; i++){
-                        
+
                         //std::cout << "\n" << objNames[i];
                         //std::cout << objValues[i];
                         //std::cout << objTypes[i];
@@ -221,8 +220,8 @@ void jsonParser::parse(){
                         varNames.push_back(objNames[i]);
                         varValues.push_back(objValues[i]);
                     }
-                    
-                    index++;                  
+
+                    index++;
                     break;
                 }
 
