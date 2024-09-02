@@ -19,7 +19,8 @@ jsonParser::~jsonParser(){
 }
 
 int jsonParser::find(std::string varibleName){
-    for (int i = 0; i < this->varNames.size(); i++){
+    for (int i = 0; i < this->varNames.size()-1; i++){
+        std::cout << this->varNames[i];
         if (this->varNames[i] == varibleName){
             return i;
         }
@@ -28,20 +29,21 @@ int jsonParser::find(std::string varibleName){
 }
 
 
-const char** jsonParser::getAll(std::vector <std::string> table){
+/*const char** jsonParser::getAll(std::vector <std::string> table){
     const char* tabl[table.size()-1];
     for (int i = 0; i < table.size()-1; i++){
         tabl[i] = table[i].c_str();
     }
     return tabl;
 }
+*/
 
 int jsonParser::getType(){
     int i = 0;
-    int j = std::string(content).length()-1;
+    int j = std::string(content).length();
 
     while (true){
-        if (std::string(content).length()-1 < i){
+        if (std::string(content).length() < i){
             return -1;
             break;
         }
@@ -71,13 +73,21 @@ int jsonParser::getType(){
     }
 }
 
-void jsonParser::parse(){
+int jsonParser::parse(){
     std::string content = this->content;
     std::string cache = "";
 
     bool isInObject = false;
     bool isInString = false;
     bool isObject = false;
+    bool elseBool = false;
+    bool copyElseBool = false;
+    bool scientificNotation = false;
+    bool isFloat = false;
+    bool isNegativeNum = false;
+
+    int multiplayerE = 0;
+    int errorcode = 0;
     int objectSkips = 0;
     int index = 0;
     int copyIndex = 0;
@@ -91,22 +101,22 @@ void jsonParser::parse(){
 
     while (true){
         // Start saving var name
-        //std::cout << content[index];
+        elseBool = false;
         if (content[index] == '"' && type != 1){
+            elseBool = true;
             while (true){
                 index++;
 
                 if (content[index] == '"'){
                     varNames.push_back(cache);
                     cache = "";
-
                     break;
                 }
                 cache += content[index];
             }
         }
         if (content[index] == ':' || (type == 1 && content[index] != ' ')){
-            //std::cout << 'a';
+            elseBool = true;
             skips = 0;
             index++;
 
@@ -139,21 +149,21 @@ void jsonParser::parse(){
                 if ((content[index] == ',' || content[index] == '}' || content[index] == ']') && (!isInObject && !isInString)){
                     copyIndex = cache.length();
                     while (true){
-
                         if (cache[copyIndex] != ' '){
                             break;
                         }
                         cache.erase(copyIndex, 1);
                         copyIndex--;
                     }
+
                     if ((content[index] == '}' || content[index] == ']') && isObject){
                         cache += content[index];
-                        //index++;
                     }
                     varValues.push_back(cache);
                     cache = "";
-					skips = 0;
+					          skips = 0;
                     varAmount++;
+
                     break;
                 }
                 cache += content[index];
@@ -162,90 +172,105 @@ void jsonParser::parse(){
         }
 
         if (varAmount > currentVarAmount){
-            while (true){
-                if (varValues[varAmount-1] == "false" || varValues[varAmount-1] == "true"){
-                    varTypes.push_back("bool");
-                    break;
-                }
+            //std::cout << varValues[varAmount-1];
+            copyElseBool = true;
 
-                if (varValues[varAmount-1] == "null"){
-                    varTypes.push_back("null");
-                    break;
-                }
-
-                if (varValues[varAmount-1][0] == '"' && varValues[varAmount-1][varValues[varAmount-1].length()-1] == '"'){
-                    varTypes.push_back("string");
-                    break;
-                }
-                if (varValues[varAmount-1][0] > 47 && varValues[varAmount-1][0] < 58){
-                    for (int i = 0; i < varValues[varAmount-1].length()-1; i++){
-                        if (varValues[varAmount-1][i] > 47 && varValues[varAmount-1][i] < 58){}
-                        else{
-                            varTypes.push_back("error");
-                            break;
-                        }
-                        if (i+1 > varValues[varAmount-1].length()-1){
-                            varTypes.push_back("int");
-                            break;
-                        }
+            //while (true){
+            if (varValues[varAmount-1] == "false" || varValues[varAmount-1] == "true"){
+                copyElseBool = true;
+                varTypes.push_back("bool");
+            }
+            if (varValues[varAmount-1] == "null"){
+                copyElseBool = true;
+                varTypes.push_back("null");
+            }
+            if (varValues[varAmount-1][0] == '"' && varValues[varAmount-1][varValues[varAmount-1].length()-1] == '"'){
+                copyElseBool = true;
+                varTypes.push_back("string");
+            }
+            if (varValues[varAmount-1][0] > 47 && varValues[varAmount-1][0] < 58){
+                copyElseBool = true;
+                for (int i = 0; i < varValues[varAmount-1].length()-1; i++){
+                    if (varValues[varAmount-1][i] == '-' && !isNegativeNum){
+                        isNegativeNum = true;
                     }
-                    break;
-                }
-                if (varValues[varAmount-1][0] == '{' && varValues[varAmount-1][varValues[varAmount-1].length()-1] == '}' ||
-                    varValues[varAmount-1][0] == '[' && varValues[varAmount-1][varValues[varAmount-1].length()-1] == ']'   ){
-
-                    if (varValues[varAmount-1][0] == '[' && varValues[varAmount-1][varValues[varAmount-1].length()-1] == ']'){
-                        varTypes.push_back("table");
+                    if ((varValues[varAmount-1][i] == 'e' || varValues[varAmount-1][i] == 'E') && !scientificNotation){
+                        scientificNotation = true;
+                        isNegativeNum = false;
+                    }
+                    if (varValues[varAmount-1][i] == '.' && !isFloat){
+                        isFloat = true;
                     }
                     else{
-                        varTypes.push_back("object");
+                        if (!(varValues[varAmount-1][i] > 47 && varValues[varAmount-1][i] < 58)){
+                            return JSON_TYPE_ERROR;
+                        }
                     }
-
-                    jsonParser object(varValues[varAmount-1].c_str());
-
-                    //std::cout << '|';
-                    object.parse();
-                    ///std::cout << '|';
-
-                    std::vector<std::string> objNames = object.getNames();
-                    std::vector<std::string> objTypes = object.getTypes();
-                    std::vector<std::string> objValues = object.getValues();
-
-                    for (int i = 0; i < object.varAmount-1; i++){
-
-                        //std::cout << "\n" << objNames[i];
-                        //std::cout << objValues[i];
-                        //std::cout << objTypes[i];
-                        varTypes.push_back(objTypes[i]);
-                        varNames.push_back(objNames[i]);
-                        varValues.push_back(objValues[i]);
-                    }
-
-                    index++;
-                    break;
                 }
-
-                else{
-                    varTypes.push_back("error");
-                    break;
-                }
+                varTypes.push_back("int");
+                scientificNotation = false;
+                isNegativeNum = false;
+                isFloat = false;
             }
+            if (varValues[varAmount-1][0] == '{' && varValues[varAmount-1][varValues[varAmount-1].length()-1] == '}' ||
+                varValues[varAmount-1][0] == '[' && varValues[varAmount-1][varValues[varAmount-1].length()-1] == ']'   ){
+                copyElseBool = true;
+
+                if (varValues[varAmount-1][0] == '[' && varValues[varAmount-1][varValues[varAmount-1].length()-1] == ']'){
+                    varTypes.push_back("table");
+                }
+                else{
+                    varTypes.push_back("object");
+                }
+
+                jsonParser object(varValues[varAmount-1].c_str());
+
+                int returnCode = object.parse();
+
+                if (returnCode != JSON_OK){
+                    std::cout << "aha";
+                    return returnCode;
+                }
+
+                std::vector<std::string> objNames = object.getNames();
+                std::vector<std::string> objTypes = object.getTypes();
+                std::vector<std::string> objValues = object.getValues();
+
+                for (int i = 0; i < object.varAmount; i++){
+                    varTypes.push_back(objTypes[i]);
+                    varNames.push_back(objNames[i]);
+                    varValues.push_back(objValues[i]);
+                }
+
+            }
+            if (copyElseBool == false){
+                return JSON_TYPE_ERROR;
+            }
+            copyElseBool = false;
+
             currentVarAmount++;
         }
-        ///std::cout << 'x';
+
         if (content[index] == '{' || content[index] == '['){
-            //std::cout << "content[index]";
+            elseBool = true;
             objectSkips++;
         }
         if (content[index] == '}' || content[index] == ']'){
-            //std::cout << "content[index]";
+            elseBool = true;
             objectSkips--;
         }
         if (objectSkips == 0){
-            //std::cout << "end";
-            break;
+            elseBool = true;
+
+            return JSON_OK;
+        }
+
+        if (!elseBool){
+            if (content[index] != ' ' && (int)content[index] != 10 && (int)content[index] != 15){
+                return JSON_UNEXPECTED_CHAR;
+            }
+            //std::cout << content[index];
         }
         index++;
     }
-    return;
 }
