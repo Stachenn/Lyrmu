@@ -10,11 +10,11 @@
 
 SDL_Color hexToSDLColor(std::string number){
     int result = 0;
-    std::string resultString = "";
-    SDL_Color color;
     int cache = 0;
     int index = 0;
-    //std::cout << number;
+    std::string resultString = "";
+    
+    SDL_Color color;
 
     for (int i = 0; i < 3; i++){
         for (int j = 1; j > -1; j--){
@@ -89,7 +89,14 @@ int main(int argc, char** argv){
     int windowSizeY = 830; 
 
     std::vector<std::string> configValues = config.getValues();
-    int aa = config.find("backgroundColor");
+    std::vector<std::string> configTypes = config.getTypes();
+    bool debugMode = false;
+
+    //std::cout << '[' << configTypes[5] << ']';
+
+    if (configValues[config.find("DEBUG_MODE")-1] == "true"){
+        debugMode = true;
+    }
 
     SDL_Window *window = nullptr;
     SDL_Renderer *renderer = nullptr;
@@ -129,17 +136,17 @@ int main(int argc, char** argv){
     SDL_Texture *bar = NULL;
     
     SDL_Event event;
-
     
     window = SDL_CreateWindow("Test window", SDL_WINDOWPOS_UNDEFINED, 
                               SDL_WINDOWPOS_UNDEFINED, windowSizeX, windowSizeY, NULL);
 
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
-    //button testbutton(0,0,0,0,window);
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+
+    
 
     //SDL_SetRenderDrawColor(renderer, backgroundColor.r, backgroundColor.g, backgroundColor.b, 255);
     //SDL_RenderFillRect(renderer, &background);
-   
+    bool needToRender = true;
     // SDL_RenderPresent(renderer);    
 
     home = IMG_LoadTexture(renderer, "build/debug/res/icons/home.png");
@@ -149,41 +156,105 @@ int main(int argc, char** argv){
     settings = IMG_LoadTexture(renderer, "build/debug/res/icons/settings.png");
     bar = IMG_LoadTexture(renderer, "build/debug/res/interface/bar.png");
 
-    SDL_SetRenderDrawColor(renderer, backgroundColor.r, backgroundColor.g, backgroundColor.b, 255);
-    while (1){
-        if (SDL_PollEvent(&event) != 0 ){ 
+    SDL_SetRenderDrawColor(renderer, backgroundColor.r, backgroundColor.g, backgroundColor.b, 255);    
+    
+    SDL_Rect buttonShape = {500, 500, 500, 500};
+
+    button testbutton(buttonShape, window);
+    
+    button randomb(iconssize, window);
+    iconssize.x += iconssize.w + 25;
+
+    button homeb(iconssize, window);
+    iconssize.x += iconssize.w + 25;
+
+    button searchb(iconssize, window);
+    iconssize.x += iconssize.w + 25;
+
+    button libraryb(iconssize, window);
+    iconssize.x += iconssize.w + 25;
+
+    button settingsb(iconssize, window);
+    iconssize.x += iconssize.w + 25;
+    
+    while (true){
+        if (SDL_PollEvent(&event) != 0 || needToRender){ 
             if (event.type == SDL_QUIT){
                 break;
-            } 
+            }
+            if (event.type == SDL_MOUSEBUTTONDOWN){
+                while (true){
+                    if (homeb.isClicked(event)){
+                        std::cout << "home";
+                        break;
+                    }
+                    if (randomb.isClicked(event)){
+                        std::cout << "random";
+                        break;
+                    }
+                    if (searchb.isClicked(event)){
+                        std::cout << "search";
+                        break;
+                    }
+                    if (libraryb.isClicked(event)){
+                        std::cout << "library";
+                        break;
+                    }
+                    if (settingsb.isClicked(event)){
+                        std::cout << "settings";
+                        break;
+                    }
+                    else{
+                        break;
+                    }
+                }
+            }
+
+            SDL_RenderClear(renderer);
+            //SDL_RenderFillRect(renderer, &background);
+            //SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+            //SDL_RenderDrawRect(renderer, &buttonShape);
+            
+
+            SDL_RenderCopy(renderer, bar, NULL, &barsize);
+
+            //pos, size
+            
+            //SDL_SetRenderDrawColor(renderer, backgroundColor.r, backgroundColor.g, backgroundColor.b, 255);
+            
+            SDL_RenderCopy(renderer, random, NULL, &iconssize);
+            iconssize.x += iconssize.w + 25;
+
+            SDL_RenderCopy(renderer, search, NULL, &iconssize);
+            iconssize.x += iconssize.w + 25;
+
+            SDL_RenderCopy(renderer, home, NULL, &iconssize);
+            iconssize.x += iconssize.w + 25;
+
+            SDL_RenderCopy(renderer, library, NULL, &iconssize);
+            iconssize.x += iconssize.w + 25;
+            
+            SDL_RenderCopy(renderer, settings, NULL, &iconssize);
+            
+            if (debugMode){
+                iconssize.x = 110;
+
+                SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+                for (int i = 0; i < 5; i++){
+                    SDL_RenderDrawRect(renderer, &iconssize);
+                    
+                    iconssize.x += iconssize.w + 25;
+                }
+                SDL_SetRenderDrawColor(renderer, backgroundColor.r, backgroundColor.g, backgroundColor.b, 255);
+            }
+            iconssize.x = 110;
+
+            SDL_RenderPresent(renderer);
+            
+            needToRender = false;
         }
         //testbutton.isClicked();
-        SDL_RenderClear(renderer);
-        SDL_RenderFillRect(renderer, &background);
-        
-
-        SDL_RenderCopy(renderer, bar, NULL, &barsize);
-
-        //pos, size
-        SDL_RenderCopy(renderer, random, NULL, &iconssize);
-        iconssize.x += iconssize.w + 25;
-
-        SDL_RenderCopy(renderer, search, NULL, &iconssize);
-        iconssize.x += iconssize.w + 25;
-
-        SDL_RenderCopy(renderer, home, NULL, &iconssize);
-        iconssize.x += iconssize.w + 25;
-
-        SDL_RenderCopy(renderer, library, NULL, &iconssize);
-        iconssize.x += iconssize.w + 25;
-        
-        SDL_RenderCopy(renderer, settings, NULL, &iconssize);
-        
-        SDL_RenderPresent(renderer);
-        iconssize.x = 110;
     }
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    
     SDL_DestroyTexture(home);
     SDL_DestroyTexture(random);
     SDL_DestroyTexture(search);
@@ -191,7 +262,11 @@ int main(int argc, char** argv){
     SDL_DestroyTexture(settings);
     SDL_DestroyTexture(bar);
 
-    SDL_Quit();
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+
     IMG_Quit();
+    SDL_Quit();
+    
     return 0;
 }
