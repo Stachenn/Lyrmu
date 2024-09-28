@@ -1,7 +1,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include "../../include/jsonParser/parser.cpp"
-#include "button.cpp"
+#include "../include/button/button.cpp"
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -89,12 +89,10 @@ int main(int argc, char** argv){
     int windowSizeY = 830; 
 
     std::vector<std::string> configValues = config.getValues();
-    std::vector<std::string> configTypes = config.getTypes();
+    std::vector<std::string> configNames = config.getNames();
     bool debugMode = false;
 
-    //std::cout << '[' << configTypes[5] << ']';
-
-    if (configValues[config.find("DEBUG_MODE")-1] == "true"){
+    if (configValues[config.find("DEBUG_MODE")] == "true"){
         debugMode = true;
     }
 
@@ -165,10 +163,10 @@ int main(int argc, char** argv){
     button randomb(iconssize, window);
     iconssize.x += iconssize.w + 25;
 
-    button homeb(iconssize, window);
+    button searchb(iconssize, window);
     iconssize.x += iconssize.w + 25;
 
-    button searchb(iconssize, window);
+    button homeb(iconssize, window);
     iconssize.x += iconssize.w + 25;
 
     button libraryb(iconssize, window);
