@@ -1,7 +1,12 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
+
 #include "../../include/jsonParser/parser.cpp"
-#include "../include/button/button.cpp"
+#include "../include/sdlbutton/button.cpp"
+
+//#include "../include/sdlfont/font.cpp"
+
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -56,7 +61,14 @@ int main(int argc, char** argv){
         std::cout << "Failed with initialization SDL2, Error: " << SDL_GetError();
         return -1;
     }
-    
+    if (IMG_Init(IMG_INIT_PNG) == 0){
+        std::cout << "Failed with initialiaztion SDL2_image, Error: " << SDL_GetError();
+        return -1;
+    }
+    if (TTF_Init() == -1){
+        std::cout << "Failed with initialiaztion SDL2_ttf, Error: " << TTF_GetError();
+        return -1;
+    }
     int configFileSize = 0;
     std::string configContent = "";
     
@@ -77,11 +89,6 @@ int main(int argc, char** argv){
     if (config.parse() != JSON_OK){
         std::cout << config.parse();
         std::cout << "Error: Unable to parse file config.json / file does not exist / program cannot access its";
-        return -1;
-    }
-
-    if (IMG_Init(IMG_INIT_PNG) == 0){
-        std::cout << "Failed with initialiaztion SDL2_image, Error: " << SDL_GetError();
         return -1;
     }
     
@@ -122,8 +129,8 @@ int main(int argc, char** argv){
 
     background.x = 0;
     background.y = 0;
-    background.w = 500;
-    background.h = 500;
+    background.w = windowSizeX;
+    background.h = windowSizeY;
 
     SDL_Texture *home = NULL;// = IMG_LoadTexture(renderer, "/home/stanislaw/Project/CppCode/spotif/uitests/build/debug/home.png");
     //std::cout << IMG_LoadTexture(renderer, "/home/stanislaw/Project/CppCode/spotif/uitests/build/debug/home.png");
@@ -141,18 +148,17 @@ int main(int argc, char** argv){
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
     
-
     //SDL_SetRenderDrawColor(renderer, backgroundColor.r, backgroundColor.g, backgroundColor.b, 255);
     //SDL_RenderFillRect(renderer, &background);
     bool needToRender = true;
     // SDL_RenderPresent(renderer);    
 
-    home = IMG_LoadTexture(renderer, "build/debug/res/icons/home.png");
-    search = IMG_LoadTexture(renderer, "build/debug/res/icons/search.png");
-    random = IMG_LoadTexture(renderer, "build/debug/res/icons/random.png");
-    library = IMG_LoadTexture(renderer, "build/debug/res/icons/library.png");
-    settings = IMG_LoadTexture(renderer, "build/debug/res/icons/settings.png");
-    bar = IMG_LoadTexture(renderer, "build/debug/res/interface/bar.png");
+    home = IMG_LoadTexture(renderer, "res/icons/home.png");
+    search = IMG_LoadTexture(renderer, "res/icons/search.png");
+    random = IMG_LoadTexture(renderer, "res/icons/random.png");
+    library = IMG_LoadTexture(renderer, "res/icons/library.png");
+    settings = IMG_LoadTexture(renderer, "res/icons/settings.png");
+    bar = IMG_LoadTexture(renderer, "res/interface/bar.png");
 
     SDL_SetRenderDrawColor(renderer, backgroundColor.r, backgroundColor.g, backgroundColor.b, 255);    
     
@@ -174,7 +180,7 @@ int main(int argc, char** argv){
 
     button settingsb(iconssize, window);
     iconssize.x += iconssize.w + 25;
-    
+
     while (true){
         if (SDL_PollEvent(&event) != 0 || needToRender){ 
             if (event.type == SDL_QUIT){
@@ -207,18 +213,10 @@ int main(int argc, char** argv){
                     }
                 }
             }
-
+            SDL_SetRenderDrawColor(renderer, backgroundColor.r, backgroundColor.g, backgroundColor.b, 255);
             SDL_RenderClear(renderer);
-            //SDL_RenderFillRect(renderer, &background);
-            //SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-            //SDL_RenderDrawRect(renderer, &buttonShape);
-            
 
             SDL_RenderCopy(renderer, bar, NULL, &barsize);
-
-            //pos, size
-            
-            //SDL_SetRenderDrawColor(renderer, backgroundColor.r, backgroundColor.g, backgroundColor.b, 255);
             
             SDL_RenderCopy(renderer, random, NULL, &iconssize);
             iconssize.x += iconssize.w + 25;
@@ -247,6 +245,8 @@ int main(int argc, char** argv){
             }
             iconssize.x = 110;
 
+            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+            SDL_RenderDrawRect(renderer, &background);
             SDL_RenderPresent(renderer);
             
             needToRender = false;
@@ -264,6 +264,7 @@ int main(int argc, char** argv){
     SDL_DestroyWindow(window);
 
     IMG_Quit();
+    TTF_Quit();
     SDL_Quit();
     
     return 0;
