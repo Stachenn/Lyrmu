@@ -9,7 +9,6 @@
 /// @param content json content to parse can be change later
 /// @return nothing
 
-//jsonParser::addToTable()
 jsonParser::jsonParser(std::string content){
     this->content = content;
 }
@@ -19,8 +18,7 @@ jsonParser::~jsonParser(){
 }
 
 int jsonParser::find(std::string varibleName){
-    for (int i = 0; i < this->varNames.size()-1; i++){
-        std::cout << this->varNames[i];
+    for (int i = 0; i < this->varNames.size(); i++){
         if (this->varNames[i] == varibleName){
             return i;
         }
@@ -149,7 +147,7 @@ int jsonParser::parse(){
                 if ((content[index] == ',' || content[index] == '}' || content[index] == ']') && (!isInObject && !isInString)){
                     copyIndex = cache.length();
                     while (true){
-                        if (cache[copyIndex] != ' '){
+                        if (cache[copyIndex] != ' ' && cache[copyIndex] != '\n' && (int)cache[copyIndex] != 0){
                             break;
                         }
                         cache.erase(copyIndex, 1);
@@ -161,7 +159,7 @@ int jsonParser::parse(){
                     }
                     varValues.push_back(cache);
                     cache = "";
-					          skips = 0;
+		            skips = 0;
                     varAmount++;
 
                     break;
@@ -172,10 +170,7 @@ int jsonParser::parse(){
         }
 
         if (varAmount > currentVarAmount){
-            //std::cout << varValues[varAmount-1];
             copyElseBool = true;
-
-            //while (true){
             if (varValues[varAmount-1] == "false" || varValues[varAmount-1] == "true"){
                 copyElseBool = true;
                 varTypes.push_back("bool");
@@ -228,7 +223,6 @@ int jsonParser::parse(){
                 int returnCode = object.parse();
 
                 if (returnCode != JSON_OK){
-                    std::cout << "aha";
                     return returnCode;
                 }
 
@@ -266,10 +260,9 @@ int jsonParser::parse(){
         }
 
         if (!elseBool){
-            if (content[index] != ' ' && (int)content[index] != 10 && (int)content[index] != 15){
+            if ((int)content[index] != 32 && content[index] != '\n' && (int)content[index] != 10 && (int)content[index] != 15 && (int)cache[copyIndex] != 0){
                 return JSON_UNEXPECTED_CHAR;
-            }
-            //std::cout << content[index];
+            }    
         }
         index++;
     }
