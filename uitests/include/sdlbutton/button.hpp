@@ -7,19 +7,15 @@
 
 class button{
     private:
-        SDL_Texture* texture = nullptr;
         SDL_Window* window = nullptr;
-        std::string filePath = "";
-
     public:
-        SDL_Rect shape = {0, 0, 0, 0};
+        SDL_Rect shape;
 
-        button(SDL_Rect shap, SDL_Window* windo, const char* pngTexturePath);
+        button(SDL_Rect shap, SDL_Window* windo);
         ~button();
 
         int isClicked(SDL_Event event);
-        int changeTexuture(const char* newPath);
-        
+
         void fadeOut(int speed); //SDL_SetTextureAlphaMod(texture, 0);
         void fadeIn(int speed);
 };

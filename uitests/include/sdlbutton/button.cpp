@@ -4,13 +4,12 @@
 #include <SDL2/SDL_image.h>
 #include "button.hpp"
 
-button::button(SDL_Rect shap, SDL_Window* windo, const char* pngTexturePath){
+button::button(SDL_Rect shap, SDL_Window* windo){
     shape = shap;
     window = windo;
 }
 
 button::~button(){
-    SDL_DestroyTexture(texture);
 }
 
 int button::isClicked(SDL_Event event){ 
