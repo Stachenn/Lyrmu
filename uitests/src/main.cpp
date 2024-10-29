@@ -4,7 +4,7 @@
 
 #include "../../include/jsonParser/parser.cpp"
 #include "../include/sdlbutton/button.cpp"
-
+#include "scenes.cpp"
 //#include "../include/sdlfont/font.cpp"
 
 #include <iostream>
@@ -82,32 +82,32 @@ int main(int argc, char** argv){
         configContent += configFile.get();
     } 
     configFile.close();
-    
-    jsonParser config("");
-
-    config.content = configContent;
+    jsonParser config(configContent);
     if (config.parse() != JSON_OK){
         std::cout << config.parse();
         std::cout << "Error: Unable to parse file config.json / file does not exist / program cannot access its";
         return -1;
     }
-    
+   
     int windowSizeX = 1600;
     int windowSizeY = 830; 
+
+    config.parse();
 
     std::vector<std::string> configValues = config.getValues();
     std::vector<std::string> configNames = config.getNames();
     bool debugMode = false;
-
+    
     if (configValues[config.find("DEBUG_MODE")] == "true"){
         debugMode = true;
     }
 
     SDL_Window *window = nullptr;
     SDL_Renderer *renderer = nullptr;
-    
-    SDL_Color backgroundColor = hexToSDLColor(configValues[config.find("backgroundColor")].erase(0, 2));
 
+    SDL_Color backgroundColor = hexToSDLColor(configValues[config.find("backgroundColor")].erase(0,2));//
+
+    std::cout << configValues[config.find("backgroundColor")];
     SDL_Rect iconssize = {0, 0, 0, 0};
     SDL_Rect iconspos = {0, 0, 0, 0};
 
@@ -132,8 +132,7 @@ int main(int argc, char** argv){
     background.w = windowSizeX;
     background.h = windowSizeY;
 
-    SDL_Texture *home = NULL;// = IMG_LoadTexture(renderer, "/home/stanislaw/Project/CppCode/spotif/uitests/build/debug/home.png");
-    //std::cout << IMG_LoadTexture(renderer, "/home/stanislaw/Project/CppCode/spotif/uitests/build/debug/home.png");
+    SDL_Texture *home = NULL;
     SDL_Texture *search = NULL;
     SDL_Texture *random = NULL;
     SDL_Texture *library = NULL;
@@ -146,19 +145,16 @@ int main(int argc, char** argv){
                               SDL_WINDOWPOS_UNDEFINED, windowSizeX, windowSizeY, NULL);
 
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-
-    
-    //SDL_SetRenderDrawColor(renderer, backgroundColor.r, backgroundColor.g, backgroundColor.b, 255);
-    //SDL_RenderFillRect(renderer, &background);
     bool needToRender = true;
-    // SDL_RenderPresent(renderer);    
-
+    
+    /*
     home = IMG_LoadTexture(renderer, "res/icons/home.png");
     search = IMG_LoadTexture(renderer, "res/icons/search.png");
     random = IMG_LoadTexture(renderer, "res/icons/random.png");
     library = IMG_LoadTexture(renderer, "res/icons/library.png");
     settings = IMG_LoadTexture(renderer, "res/icons/settings.png");
     bar = IMG_LoadTexture(renderer, "res/interface/bar.png");
+    */
 
     SDL_SetRenderDrawColor(renderer, backgroundColor.r, backgroundColor.g, backgroundColor.b, 255);    
     
@@ -180,6 +176,9 @@ int main(int argc, char** argv){
 
     button settingsb(iconssize, window);
     iconssize.x += iconssize.w + 25;
+
+    scenes scenesMenager(window, renderer, backgroundColor, debugMode, windowSizeY, windowSizeX);
+    
 
     while (true){
         if (SDL_PollEvent(&event) != 0 || needToRender){ 
@@ -213,53 +212,22 @@ int main(int argc, char** argv){
                     }
                 }
             }
-            SDL_SetRenderDrawColor(renderer, backgroundColor.r, backgroundColor.g, backgroundColor.b, 255);
-            SDL_RenderClear(renderer);
+            //do bar(w,r,c,dm) func
+            scenesMenager.baar();
 
-            SDL_RenderCopy(renderer, bar, NULL, &barsize);
-            
-            SDL_RenderCopy(renderer, random, NULL, &iconssize);
-            iconssize.x += iconssize.w + 25;
-
-            SDL_RenderCopy(renderer, search, NULL, &iconssize);
-            iconssize.x += iconssize.w + 25;
-
-            SDL_RenderCopy(renderer, home, NULL, &iconssize);
-            iconssize.x += iconssize.w + 25;
-
-            SDL_RenderCopy(renderer, library, NULL, &iconssize);
-            iconssize.x += iconssize.w + 25;
-            
-            SDL_RenderCopy(renderer, settings, NULL, &iconssize);
-            
-            if (debugMode){
-                iconssize.x = 110;
-
-                SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-                for (int i = 0; i < 5; i++){
-                    SDL_RenderDrawRect(renderer, &iconssize);
-                    
-                    iconssize.x += iconssize.w + 25;
-                }
-                SDL_SetRenderDrawColor(renderer, backgroundColor.r, backgroundColor.g, backgroundColor.b, 255);
-            }
-            iconssize.x = 110;
-
-            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-            SDL_RenderDrawRect(renderer, &background);
-            SDL_RenderPresent(renderer);
-            
             needToRender = false;
         }
         //testbutton.isClicked();
+    
     }
+    /*
     SDL_DestroyTexture(home);
     SDL_DestroyTexture(random);
     SDL_DestroyTexture(search);
     SDL_DestroyTexture(library);
     SDL_DestroyTexture(settings);
     SDL_DestroyTexture(bar);
-
+    */
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
 
