@@ -20,8 +20,10 @@ class scenes{
         bool debugMode = false;
         int windowSizeY = 0; 
         int windowSizeX = 0;
+        int iconScale = 1;
+
     public:
-        scenes(SDL_Window* windo, SDL_Renderer* rendere, SDL_Color backgroundColo, bool debugMod, int windowSizY, int windowSizX);
+        scenes(SDL_Window* windo, SDL_Renderer* rendere, SDL_Color backgroundColo, bool debugMod, int windowSizY, int windowSizX, int iconScal);
         ~scenes();
 
         void baar();
