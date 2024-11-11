@@ -79,7 +79,7 @@ void scenes::baar(){
     SDL_RenderCopy(renderer, settingst, NULL, &iconssize);
             
     if (debugMode){
-        iconssize.x = 110;
+        iconssize.x = 100 - ((this->windowSizeX / 2) - (((252+252 * iconScale*0.05) * 5 + (25*4)) / 2));
 
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
         for (int i = 0; i < 5; i++){
@@ -89,7 +89,7 @@ void scenes::baar(){
         }
         SDL_SetRenderDrawColor(renderer, backgroundColor.r, backgroundColor.g, backgroundColor.b, 255);
     }
-    iconssize.x = 110;
+    iconssize.x = 100 - ((this->windowSizeX / 2) - (((252+252 * iconScale*0.05) * 5 + (25*4)) / 2));
 }
 
 void scenes::home(){
