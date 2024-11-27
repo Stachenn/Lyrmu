@@ -31,6 +31,10 @@ scenes::~scenes(){
     SDL_DestroyTexture(bart);
 }
 
+void scenes::returnButton(){
+
+}
+
 void scenes::baar(){
     SDL_Rect iconssize = {0, 0, 0, 0};
     SDL_Rect barsize = {0, 0, 0, 0};
@@ -54,7 +58,6 @@ void scenes::baar(){
 
         if (((this->windowSizeX / 2) - (((252+252 * iconScale*0.05) * 5 + (25*4)) / 2)) > 0){
             iconssize.x = 100 - ((this->windowSizeX / 2) - (((252+252 * iconScale*0.05) * 5 + (25*4)) / 2));
-            
         }
         else {
             iconssize.x = ((this->windowSizeX / 2) - (((252+252 * iconScale*0.05) * 5 + (25*4)) / 2));
@@ -79,9 +82,13 @@ void scenes::baar(){
     SDL_RenderCopy(renderer, settingst, NULL, &iconssize);
             
     if (debugMode){
-        iconssize.x = 100 - ((this->windowSizeX / 2) - (((252+252 * iconScale*0.05) * 5 + (25*4)) / 2));
-
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        
+        iconssize.x = 100;
+        if (iconScale > 1){
+            iconssize.x = 100 - ((this->windowSizeX / 2) - (((252+252 * iconScale*0.05) * 5 + (25*4)) / 2));
+        }
+
         for (int i = 0; i < 5; i++){
             SDL_RenderDrawRect(renderer, &iconssize);
                     
@@ -89,7 +96,6 @@ void scenes::baar(){
         }
         SDL_SetRenderDrawColor(renderer, backgroundColor.r, backgroundColor.g, backgroundColor.b, 255);
     }
-    iconssize.x = 100 - ((this->windowSizeX / 2) - (((252+252 * iconScale*0.05) * 5 + (25*4)) / 2));
 }
 
 void scenes::home(){
