@@ -12,6 +12,8 @@ class scenes{
         std::vector<SDL_Texture*> textures = {};
         std::vector<int> lastSceneIndexes = {};
 
+        SDL_Rect iconssize = {0, 0, 0, 0};
+
         SDL_Color red = {255, 0, 0};
 
         SDL_Texture *homet = nullptr;
@@ -29,19 +31,20 @@ class scenes{
         TTF_Font* testFont = nullptr;
 
         int lastSceneIndex = 255;
-        //textDisplay* sahabek = nullptr;
 
     public:
+        SDL_Rect barsize = {0, 0, 0, 0};
+
         SDL_Color backgroundColor = {0,0,0,0};
         SDL_Rect testRect = {500, 500, 100, 100};
         bool debugMode = false;
         bool objectDestroyed = false;
 
-        int windowSizeY = 0;
-        int windowSizeX = 0;
+        int* windowSizeY = 0;
+        int* windowSizeX = 0;
         int iconScale = 1;
 
-        scenes(SDL_Window* windo, SDL_Renderer* rendere, SDL_Color backgroundColo, bool debugMod, int windowSizY, int windowSizX, int iconScal);
+        scenes(SDL_Window* windo, SDL_Renderer* rendere, SDL_Color backgroundColo, bool debugMod, int* windowSizY, int* windowSizX, int iconScal);
         ~scenes();
 
         void bar();
@@ -52,5 +55,5 @@ class scenes{
         void random(); // 5 scenes
 
         void clearLastScene(std::vector<int> indexes);
-        void renderScene(int sceneIndex, bool force = false);
+        void renderScene(int sceneIndex, bool forceToRender = false);
 };

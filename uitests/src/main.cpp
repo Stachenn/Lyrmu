@@ -15,11 +15,13 @@
 #include <vector>
 #include <cctype>
 #include <cmath>
+#include <filesystem>
 
 SDL_Color hexToSDLColor(std::string number){
     int result = 0;
     int cache = 0;
     int index = 0;
+
     std::string resultString = "";
 
     SDL_Color color;
@@ -60,6 +62,36 @@ SDL_Color hexToSDLColor(std::string number){
 }
 
 int main(int argc, char** argv){
+    // config-setup varibles
+    // ifstream configFile:106 line (i wont try creating file without constructor)
+    std::string configContent = "";
+    int configFileSize = 0;
+
+    jsonParser config("");
+    std::vector<std::string> configValues = {};
+    std::vector<std::string> configNames = {};
+
+    // icons, buttons properties - pos, size
+    SDL_Rect iconssize = {0, 0, 0, 0};
+    SDL_Rect barsize = {0, 0, 0, 0};
+
+    //window properties
+    int windowSizeX = 1600;
+    int windowSizeY = 830;
+
+    // render and debbuging varibles
+    bool debugMode = false;
+    bool needToRender = true;
+    int iconScale = 0;
+    int lastWindowXSize = 1600;
+    int lastWindowYSize = 830;
+    // window, renderer, etc. - window creation varibles
+    SDL_Window *window = nullptr;
+    SDL_Renderer *renderer = nullptr;
+    SDL_Event event;
+    SDL_Color backgroundColor = {0, 0, 0, 0};
+
+    // init sdl2 libs
     if (SDL_Init(SDL_INIT_VIDEO) != 0){
         std::cout << "Failed with initialization SDL2, Error: " << SDL_GetError();
         return -1;
@@ -72,11 +104,8 @@ int main(int argc, char** argv){
         std::cout << "Failed with initialiaztion SDL2_ttf, Error: " << TTF_GetError();
         return -1;
     }
-    // varible for reading file
-    int configFileSize = 0;
 
-    std::string configContent = "";
-
+    // reading config and exctracting it
     std::ifstream configFile("res/config.json", std::ios::in | std::ios::ate);
 
     configFileSize = configFile.tellg();
@@ -87,157 +116,134 @@ int main(int argc, char** argv){
     }
     configFile.close();
 
-    // definition of json parser for config file
-    jsonParser config(configContent);
+    config.content = configContent;
 
     if (config.parse() != JSON_OK){
         std::cout << "Error: Unable to parse file config.json / file does not exist / program cannot access its";
         return -1;
     }
-
-
-    // window properties
-    int windowSizeX = 1600;
-    int windowSizeY = 830;
-
-    // app properties from config file
-    int currentScene = 0;
-    int iconScale = 0;
-    bool debugMode = false;
-    bool needToRender = true;
-
-    SDL_Window *window = nullptr;
-    SDL_Renderer *renderer = nullptr;
-
-    // definition of icons
-    SDL_Texture *home = NULL;
-    SDL_Texture *search = NULL;
-    SDL_Texture *random = NULL;
-    SDL_Texture *library = NULL;
-    SDL_Texture *settings = NULL;
-    SDL_Texture *bar = NULL;
-    // event handler
-    SDL_Event event;
-
-    SDL_Color backgroundColor = hexToSDLColor(configValues[config.find("backgroundColor")].erase(0,2));
-
-    // icons, buttons properties - pos, size
-    SDL_Rect iconssize = {0, 0, 0, 0};
-    SDL_Rect iconspos = {0, 0, 0, 0};
-    SDL_Rect buttonShape = {500, 500, 500, 500};
-    SDL_Rect background = {0, 0, 0, 0};
-
-    SDL_Rect barsize = {0, 0, 0, 0};
-    SDL_Rect barpos = {0, 0, 0, 0};
-
-    // vectors for storing values from config file
-    std::vector<std::string> configValues = config.getValues();
-    std::vector<std::string> configNames = config.getNames();
-
-
-
+    // exctracting data from config to varibles
+    configValues = config.getValues();
+    configNames = config.getNames();
     iconScale = std::stoi(configValues[config.find("iconScale")]);
-
-    barsize.w = 1400+1400*iconScale*0.05;
-    barsize.h = 170+170*iconScale*0.05;
-    barsize.x = (windowSizeX - barsize.w) / 2;
-    barsize.y = windowSizeY - 190;
-
-    iconssize.w = 252;
-    iconssize.h = 162;
-    iconssize.x = 100;
-    iconssize.y = barsize.y;
-
-    if (iconScale > 1){
-        iconssize.x = 100 - ((windowSizeX / 2) - (((252+252 * iconScale*0.05) * 5 + (25*4)) / 2));
-
-        iconssize.w = 252+252*iconScale*0.05;
-        iconssize.y = (barsize.y - 225) + ((windowSizeY / 2) - (162+162*iconScale*0.05));
-    }
-
-    background.x = 0;
-    background.y = 0;
-    background.w = windowSizeX;
-    background.h = windowSizeY;
-
+    backgroundColor = hexToSDLColor(configValues[config.find("backgroundColor")].erase(0,2));
     if (configValues[config.find("DEBUG_MODE")] == "true"){
         debugMode = true;
     }
 
+    // re-scaling icons basing on config
+    barsize.w = 1456 + iconScale * 14;                      // old 1400+1400 * this->iconScale*0.05; //1400 + this->iconScale * 14;
+    barsize.h = 164 + iconScale * 14;
+    barsize.x = (windowSizeX - barsize.w) / 2;
+    barsize.y = windowSizeY - 204 - iconScale * 14;
+
+    iconssize.w = 238 + iconScale * 14;
+    iconssize.h = 162 + iconScale * 14;
+    iconssize.x = barsize.x;
+    iconssize.y = barsize.y;
+
+    // init window and renderer
     window = SDL_CreateWindow("Test window", SDL_WINDOWPOS_UNDEFINED,
-                              SDL_WINDOWPOS_UNDEFINED, windowSizeX, windowSizeY, NULL);
+                              SDL_WINDOWPOS_UNDEFINED, windowSizeX, windowSizeY, SDL_WINDOW_RESIZABLE); //SDL_WINDOW_RESIZABLE
 
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_TARGETTEXTURE);
 
     SDL_SetRenderDrawColor(renderer, backgroundColor.r, backgroundColor.g, backgroundColor.b, 255);
 
-    scenes scenesMenager(window, renderer, backgroundColor, debugMode, windowSizeY, windowSizeX, iconScale);
-
-
-
+    //init scenesMenager
+    scenes scenesMenager(window, renderer, backgroundColor, debugMode, &windowSizeY, &windowSizeX, iconScale);
+    scenesMenager.bar();
     // init buttons using sdlbutton lib
-    button randomb(iconssize, window);
+    button randomb(iconssize, window, "random");
     iconssize.x += iconssize.w + 25;
 
-    button searchb(iconssize, window);
+    button searchb(iconssize, window, "search");
     iconssize.x += iconssize.w + 25;
 
-    button homeb(iconssize, window);
+    button homeb(iconssize, window, "home");
     iconssize.x += iconssize.w + 25;
 
-    button libraryb(iconssize, window);
+    button libraryb(iconssize, window, "library");
     iconssize.x += iconssize.w + 25;
 
-    button settingsb(iconssize, window);
-    iconssize.x += iconssize.w + 25;
+    button settingsb(iconssize, window, "settings");
 
+    SDL_SetRenderDrawColor(renderer, backgroundColor.r, backgroundColor.g, backgroundColor.b, 255);
+    SDL_RenderClear(renderer);
+
+    scenesMenager.renderScene(1);
+    SDL_RenderPresent(renderer);
     // app loop - rendering, button handling, etc.
     while (true){
         if (SDL_PollEvent(&event) != 0 || needToRender){
             //exiting app handling
+            //std::cout << "\n" << event.type << "\n";
+            SDL_GetWindowSize(window, &windowSizeX, &windowSizeY);
+            if (lastWindowXSize != windowSizeX){
+                std::cout << std::filesystem::current_path() << " - Log : Change window size from " << lastWindowXSize <<  ',' << lastWindowYSize << " to" << windowSizeX << ',' << windowSizeY;
+                // Resacling window
+                barsize.w = 1456 + iconScale * 14;                      // old 1400+1400 * this->iconScale*0.05; //1400 + this->iconScale * 14;
+                barsize.x = (windowSizeX - barsize.w) / 2;
+                barsize.y = windowSizeY - 204 - iconScale * 14;
+
+                iconssize.x = barsize.x; // 100 - deafult
+                iconssize.y = barsize.y;
+
+                randomb.shape.x = iconssize.x;
+
+                iconssize.x += iconssize.w + 25;
+                searchb.shape.x = iconssize.x;
+
+                iconssize.x += iconssize.w + 25;
+                homeb.shape.x = iconssize.x;
+
+                iconssize.x += iconssize.w + 25;
+                libraryb.shape.x = iconssize.x;
+
+                iconssize.x += iconssize.w + 25;
+                settingsb.shape.x = iconssize.x;
+
+                lastWindowXSize = windowSizeX;
+                lastWindowYSize = windowSizeY;
+            }
             if (event.type == SDL_QUIT){
                 break;
             }
             if (event.type == SDL_MOUSEBUTTONDOWN){
-                needToRender = true;
                 //button handling
+                //beka2 = ((windowSizeX - barsize.w) / 2);
+                std::cout << "Mouse click detected \n";
+                //homeb.shape
+
                 if (homeb.isClicked(event)){
-                    currentScene = 0;
-                    std::cout << "home";
+                    scenesMenager.renderScene(0);
+                    //SDL_RenderPresent(renderer);
                 }
                 if (randomb.isClicked(event)){
-                    currentScene = 1;
-                    std::cout << "random";
+                    scenesMenager.renderScene(2);
                 }
                 if (searchb.isClicked(event)){
-                    currentScene = 2;
-                    std::cout << "search";
+                    scenesMenager.renderScene(3);
                 }
                 if (libraryb.isClicked(event)){
-                    currentScene = 3;
-                    std::cout << "library";
+                    scenesMenager.renderScene(4);
                 }
                 if (settingsb.isClicked(event)){
-                    currentScene = 4;
-                    std::cout << "settings";
+                    scenesMenager.renderScene(5);
                 }
+                scenesMenager.renderScene(1);
+                SDL_RenderPresent(renderer);
             }
             // section where when needed render app
-            SDL_RenderClear(renderer);
-
-            scenesMenager.home();
-            scenesMenager.baar();
-
-            SDL_RenderPresent(renderer);
 
             needToRender = false;
         }
     }
     // destroying sdl closing app
+    scenesMenager.~scenes();
+
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
-
     IMG_Quit();
     TTF_Quit();
     SDL_Quit();
