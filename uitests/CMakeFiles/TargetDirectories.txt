@@ -1,0 +1,3 @@
+/home/stanislaw/Projects/CppCode/lyrmu/uitests/CMakeFiles/lyrmu.dir
+/home/stanislaw/Projects/CppCode/lyrmu/uitests/CMakeFiles/edit_cache.dir
+/home/stanislaw/Projects/CppCode/lyrmu/uitests/CMakeFiles/rebuild_cache.dir

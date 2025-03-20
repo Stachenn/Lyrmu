@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/lyrmu.dir/src/main.cpp.o -o lyrmu  -lSDL2 -lSDL2_image -lSDL2_ttf
