@@ -13,7 +13,7 @@ class scenes{
         std::vector<int> lastSceneIndexes = {};
 
         SDL_Rect iconssize = {0, 0, 0, 0};
-
+        SDL_Rect homeSongsPosition = {0, 0, 0, 0};
         SDL_Color red = {255, 0, 0};
 
         SDL_Texture *homet = nullptr;
@@ -22,7 +22,9 @@ class scenes{
         SDL_Texture *libraryt = nullptr;
         SDL_Texture *settingst = nullptr;
         SDL_Texture *bart = nullptr;
-
+        SDL_Texture *notFounded = nullptr;
+        SDL_Texture *iconBorder = nullptr;
+        
         SDL_Window* window = nullptr;
         SDL_Renderer* renderer = nullptr;
 
